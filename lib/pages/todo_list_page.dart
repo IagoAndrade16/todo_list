@@ -12,6 +12,8 @@ class TodoListPage extends StatefulWidget {
 
 class _TodoListPageState extends State<TodoListPage> {
   List<Todo> todos = [];
+  Todo? deletedTodo;
+  int? deleteTodoPos;
 
   final TextEditingController todoController = TextEditingController();
 
@@ -43,8 +45,8 @@ class _TodoListPageState extends State<TodoListPage> {
                         String text = todoController.text;
                         setState(() {
                           Todo newTodo = Todo(
-                              title: text,
-                              dateTime: DateTime.now(),
+                            title: text,
+                            dateTime: DateTime.now(),
                           );
                           todos.add(newTodo);
                         });
@@ -61,20 +63,21 @@ class _TodoListPageState extends State<TodoListPage> {
                   ],
                 ),
                 const SizedBox(height: 16), // empty space
-    
+
                 Flexible(
                   child: ListView(
                     children: [
                       for (Todo todo in todos)
                         TodoListItem(
                           todo: todo,
+                          onDelete: onDelete,
                         ),
                     ],
                   ),
                 ),
-    
+
                 const SizedBox(height: 16), // empty space
-    
+
                 Row(
                   children: [
                     Expanded(
@@ -92,7 +95,6 @@ class _TodoListPageState extends State<TodoListPage> {
                         setState(() {
                           todos.clear();
                         });
-                        
                       },
                       child: Text('Limpar tudo'),
                     ),
@@ -102,6 +104,37 @@ class _TodoListPageState extends State<TodoListPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void onDelete(Todo todo) {
+    deletedTodo = todo;
+    deleteTodoPos = todos.indexOf(todo);
+
+    setState(() {
+      todos.remove(todo);
+    });
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tarefa ${todo.title} foi removida com sucesso',
+            style: TextStyle(
+              color: Color(0xff060708),
+            ),
+          ),
+        backgroundColor: Colors.white,
+        action: SnackBarAction(
+          label: 'Desfazer',
+          textColor: const Color(0xff00d7f3),
+          onPressed: () {
+            setState(() {
+              todos.insert(deleteTodoPos!, deletedTodo!);
+            });
+          },
+        ),
+        duration: const Duration(seconds: 5),
       ),
     );
   }
